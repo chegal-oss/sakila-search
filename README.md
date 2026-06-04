@@ -5,7 +5,6 @@ CLI application for searching films in the `sakila` database with filters by cat
 ## Requirements
 
 - Python 3.14
-- local SQLite database file, generated from MySQL once
 - MySQL access is optional at runtime
 - MongoDB access is optional at runtime
 
