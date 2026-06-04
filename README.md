@@ -5,8 +5,9 @@ CLI application for searching films in the `sakila` database with filters by cat
 ## Requirements
 
 - Python 3.14
-- access to MySQL
-- access to MongoDB
+- local SQLite database file, generated from MySQL once
+- MySQL access is optional at runtime
+- MongoDB access is optional at runtime
 
 ## Installation
 
@@ -28,9 +29,10 @@ pip install -r requirements.txt
 
 ## Environment Configuration
 
-The project reads environment variables from the `.env` file.
+The project reads environment variables from the `.env` file when it exists.
+All variables have local defaults, so importing and running the project does not require `.env`.
 
-Minimum required variables:
+Optional MySQL variables:
 
 ```env
 DB_HOST=your-mysql-host
@@ -38,10 +40,28 @@ DB_PORT=3306
 DB_NAME=your-database-name
 DB_USER=your-mysql-user
 DB_PASSWORD=your-mysql-password
-MONGO_URI=mongodb://your-user:your-password@your-host/?readPreference=primary&ssl=false&authMechanism=DEFAULT&authSource=your-auth-db
+DB_CONNECT_TIMEOUT=3
+```
+
+Optional MongoDB variables:
+
+```env
+MONGO_URI=mongodb://your-user:your-password@your-host/
 MONGO_DATABASE=your-mongo-database
 MONGO_COLLECTION=your-mongo-collection
+MONGO_TIMEOUT_MS=3000
 ```
+
+## Local SQLite Copy
+
+Create or refresh the local SQLite database:
+
+```bash
+python scripts/copy_mysql_to_sqlite.py
+```
+
+The script copies only tables used by the application: `film`, `film_category`, and `category`.
+The local file is created at `data/sakila.sqlite` and is ignored by git.
 
 ## Run
 
@@ -65,4 +85,6 @@ python main.py
 - shows release periods
 - allows searching by film title
 - displays paginated results
-- supports search history storage in MongoDB
+- shows detailed film information
+- uses MySQL when available and falls back to local SQLite
+- stores search history in MongoDB when available and falls back to local SQLite
