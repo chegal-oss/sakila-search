@@ -1,4 +1,25 @@
-from .connectors import connect, MySQLConnector, Connector
-from .history import MongoHistoryConnector
+from .connector import (
+    Connector,
+    FallbackConnector,
+    MySQLConnector,
+    SQLiteConnector,
+    connect,
+)
+from .history import (
+    FallbackHistoryConnector,
+    HistoryConnector,
+    MongoHistoryConnector,
+    SQLiteHistoryConnector,
+)
 
-__all__ = ["connect", "MySQLConnector", "Connector", "MongoHistoryConnector"]
+__all__ = [
+    "connect",
+    "MySQLConnector",
+    "SQLiteConnector",
+    "Connector",
+    "FallbackConnector",
+    "HistoryConnector",
+    "MongoHistoryConnector",
+    "SQLiteHistoryConnector",
+    "FallbackHistoryConnector",
+]

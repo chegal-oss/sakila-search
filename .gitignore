@@ -10,3 +10,7 @@ __pycache__/
 .DS_Store
 
 app/logs/*.log
+
+data/*.sqlite
+data/*.sqlite3
+data/*.db
