@@ -5,6 +5,7 @@ from app.db.repository import SakilaRepo
 
 if __name__ == "__main__":
     print(utils.sakila_banner())
+    utils.clear_console()
     with (
         db.connect(db.FallbackConnector) as sql_connection,
         db.FallbackHistoryConnector() as history_connection,

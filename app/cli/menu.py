@@ -5,13 +5,13 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from .utils import print_color
+from .utils import clear_console, print_color, truncate_visible, visible_length
 
 
 class Menu:
     """Interactive terminal menu with upper content items and bottom actions."""
 
-    MENU_WIDTH = 100
+    MENU_WIDTH = 80
     IDX_EXIT = "0"
     IDX_NEXT = "n"
     IDX_PREVIOUS = "p"
@@ -68,17 +68,19 @@ class Menu:
                 else f"    {item.prompt}"
             )
 
-        for item_formatter in (
-            (
-                "│"
-                + f"{{:{self.MENU_WIDTH // len(row) + self.MENU_WIDTH % len(row) - 2}}}"
-                * len(row)
-                + "  " * (self.MENU_WIDTH % len(row))
-                + "│"
-            ).format(*row)
-            for row in matrix
-        ):
-            print(item_formatter)
+        for row in matrix:
+            inner_width = self.MENU_WIDTH - 2
+            base_width = inner_width // len(row)
+            extra_width = inner_width % len(row)
+            widths = [
+                base_width + (1 if idx < extra_width else 0)
+                for idx in range(len(row))
+            ]
+            cells = []
+            for item, width in zip(row, widths):
+                item = truncate_visible(item, width)
+                cells.append(item + " " * (width - visible_length(item)))
+            print("│" + "".join(cells) + "│")
 
     def add_submenu(
         self,
@@ -142,6 +144,7 @@ class Menu:
         """Run the menu and dispatch the selected item."""
         item = self._main_loop()
         if item:
+            clear_console()
             if isinstance(item.menu, Callable):
                 item.menu(item)
             elif isinstance(item.menu, Menu):

@@ -1,3 +1,9 @@
+import re
+
+
+ANSI_ESCAPE_PATTERN = re.compile(r"\033\[[0-9;]*m")
+
+
 def color_text(text: str, fg: str = None, bg: str = None) -> str:
     """Wrap text in ANSI color codes when foreground or background is known."""
     fg_colors = {
@@ -39,6 +45,49 @@ def color_text(text: str, fg: str = None, bg: str = None) -> str:
 def print_color(text: str, fg: str = None, bg: str = None, *args, **kwargs):
     """Print text with optional ANSI colors."""
     print(color_text(text, fg, bg), *args, **kwargs)
+
+
+def visible_length(text: str) -> int:
+    """Return text length without ANSI color sequences."""
+    return len(ANSI_ESCAPE_PATTERN.sub("", text))
+
+
+def truncate_visible(text: str, width: int) -> str:
+    """Trim text to a visible width without breaking ANSI color sequences."""
+    if width <= 0:
+        return ""
+
+    if visible_length(text) <= width:
+        return text
+
+    suffix = "..." if width >= 3 else "." * width
+    target_width = width - len(suffix)
+    result = []
+    visible_count = 0
+    idx = 0
+    saw_ansi = False
+
+    while idx < len(text) and visible_count < target_width:
+        match = ANSI_ESCAPE_PATTERN.match(text, idx)
+        if match:
+            result.append(match.group())
+            idx = match.end()
+            saw_ansi = True
+            continue
+
+        result.append(text[idx])
+        visible_count += 1
+        idx += 1
+
+    if saw_ansi:
+        result.append("\033[0m")
+    result.append(suffix)
+    return "".join(result)
+
+
+def clear_console() -> None:
+    """Clear the terminal screen."""
+    print("\033[2J\033[H", end="")
 
 
 def sakila_banner() -> str:

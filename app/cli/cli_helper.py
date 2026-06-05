@@ -1,13 +1,17 @@
 import textwrap
 
 from app.cli.menu import Menu
-from app.cli.utils import color_text
+from app.cli.utils import color_text, truncate_visible, visible_length
 from app.db.model import Category, Film, Period, UserQuery
 from app.db.repository import SakilaRepo
 
 
 class CLIHelper:
     """Coordinate menu callbacks and repository calls for the CLI application."""
+
+    POPULAR_QUERY_COLUMNS_COUNT = 4
+    POPULAR_QUERY_INDEX_WIDTH = 4
+    POPULAR_QUERY_SEPARATOR = " | "
 
     # ************* Listeners *****************
     def on_category_change_listener(self, item: Menu.MenuItem) -> None:
@@ -132,13 +136,31 @@ class CLIHelper:
 
     def _get_popular_query_label(self, query: UserQuery) -> str:
         """Return a menu label for a popular query."""
-        searched_at = ""
-        if query.last_searched_at:
-            searched_at = (
-                f" | Last: "
-                f"{query.last_searched_at.astimezone().strftime('%Y-%m-%d %H:%M')}"
-            )
-        return f"{query.to_label()} | Count: {query.count or 0}{searched_at}"
+        columns = [
+            f"Category: {query.category.name if query.category else 'All'}",
+            f"Period: {query.years.period if query.years else 'All'}",
+            f"Title: {query.title or 'All'}",
+            f"Count: {query.count or 0}",
+        ]
+        width = self._get_popular_query_column_width()
+        return self.POPULAR_QUERY_SEPARATOR.join(
+            self._format_popular_query_column(column, width) for column in columns
+        )
+
+    def _get_popular_query_column_width(self) -> int:
+        """Return equal width for popular-query columns."""
+        available_width = (
+            Menu.MENU_WIDTH
+            - 2
+            - self.POPULAR_QUERY_INDEX_WIDTH
+            - len(self.POPULAR_QUERY_SEPARATOR) * (self.POPULAR_QUERY_COLUMNS_COUNT - 1)
+        )
+        return available_width // self.POPULAR_QUERY_COLUMNS_COUNT
+
+    def _format_popular_query_column(self, text: str, width: int) -> str:
+        """Trim and pad a popular-query column to fixed visible width."""
+        text = truncate_visible(text, width)
+        return text + " " * (width - visible_length(text))
 
     def _get_selected_category_id(self) -> int | None:
         """Return selected category id or None when all categories are selected."""
